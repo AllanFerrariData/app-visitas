@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#007A82">
+<title>Visitas · Placas NFC</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+<style>
+:root{--base:#008C95;--dark:#007A82;--num:#006A71;--bg:#F3F7F7;--txt:#16282A;--muted:#3B5457;--line:#D5E2E3;--amberbg:#FFF0D2;--amber:#7A4B00;--err:#B3261E}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg)}
+body{font-family:Inter,system-ui,Roboto,sans-serif;color:var(--txt);-webkit-tap-highlight-color:transparent}
+button,input,textarea{font-family:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:560px;margin:0 auto}
+.top{background:var(--dark);color:#fff;padding:calc(env(safe-area-inset-top) + 18px) 16px 18px;display:flex;align-items:flex-start;gap:10px;flex:none}
+.top .grow{flex:1;min-width:0}
+.top h1{margin:0;font-size:22px;font-weight:700;line-height:1.2}
+.top p{margin:3px 0 0;font-size:14px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top.home{padding-top:calc(env(safe-area-inset-top) + 28px);padding-bottom:22px}
+.top.home h1{font-size:26px}
+.top.home p{font-size:15px}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex:none;color:#fff;cursor:pointer;padding:0}
+main{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.foot{flex:none;padding:10px 16px 14px}
+nav.tabs{display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 8px calc(10px + env(safe-area-inset-bottom));flex:none}
+nav.tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;color:var(--muted);font-size:13px;font-weight:500}
+nav.tabs a span{display:flex;align-items:center;justify-content:center;width:64px;height:30px;border-radius:999px}
+nav.tabs a.on{color:var(--num);font-weight:700}
+nav.tabs a.on span{background:#DDF0F1}
+.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,60,64,.08)}
+.card h2{margin:0 0 10px;font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.stats{display:flex;gap:10px}
+.stat{flex:1;background:#fff;border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 2px rgba(0,60,64,.08);border:2px solid transparent;text-align:left;min-width:0}
+.stat b{font-size:28px;font-weight:700;color:var(--num);line-height:1.15}
+.stat span{font-size:14px;color:var(--muted)}
+.stat.meta{border-color:var(--dark);cursor:pointer}
+.bar{height:6px;border-radius:999px;background:var(--line);margin-top:6px;overflow:hidden;display:block}
+.bar i{display:block;height:6px;background:var(--dark)}
+.blur{filter:blur(9px);user-select:none}
+.hint{margin:0;font-size:14px;color:var(--muted)}
+.pend{background:var(--amberbg);border-radius:16px;overflow:hidden}
+.pend>button{width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:56px;border:0;background:transparent;cursor:pointer;text-align:left}
+.pend .lbl{flex:1;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:.02em}
+.pend .cnt{min-width:28px;height:28px;padding:0 6px;border-radius:999px;background:var(--amber);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pend ul{list-style:none;margin:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+.pend li{background:#fff;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.pend li .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.pend li .nm b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pend li .nm small{font-size:13px;color:var(--muted)}
+.pend li a{display:flex;align-items:center;height:44px;padding:0 16px;border-radius:12px;background:var(--amber);color:#fff;font-size:15px;font-weight:700}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;border-radius:16px;border:0;font-size:17px;font-weight:700;cursor:pointer;padding:0 16px;text-align:center}
+.btn.primary{background:var(--dark);color:#fff}
+.btn.sec{background:#fff;color:var(--dark);border:2px solid var(--dark)}
+.btn.ghost{background:transparent;color:var(--dark);min-height:48px}
+.btn.big{min-height:76px;border-radius:20px;font-size:22px}
+.btns{display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.lab{font-size:15px;font-weight:700}
+.opt{font-weight:400;color:var(--muted)}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=time],input[type=search],textarea{width:100%;min-height:50px;border:1.5px solid #8FA7AA;border-radius:12px;padding:12px 14px;font-size:16px;background:#fff}
+textarea{min-height:96px;resize:vertical}
+input:focus,textarea:focus{outline:3px solid #9ED7DB;border-color:var(--dark)}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;background:#fff;color:var(--txt);border:1.5px solid #8FA7AA;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+.chip small{font-weight:500;opacity:.8}
+.scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.err{color:var(--err);font-size:14px;font-weight:600;margin:0}
+.note{font-size:14px;color:var(--muted);margin:0}
+.dup{background:var(--amberbg);color:var(--amber);border-radius:12px;padding:10px 12px;font-size:14px}
+.dup a{text-decoration:underline;font-weight:700}
+.pill{font-size:13px;font-weight:700;padding:6px 10px;border-radius:999px;white-space:nowrap}
+.p-ag{background:#FFF0D2;color:#7A4B00}.p-agd{background:#E3EEFB;color:#0B4A8F}.p-v{background:#DDF3E8;color:#0B5D3E}.p-na{background:#E7ECEC;color:#3B4A4C}
+.tag{font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid #8FA7AA;background:#fff;white-space:nowrap}
+.tag.opp{background:#E3EEFB;color:#0B4A8F;border-color:#0B4A8F}
+.av{width:44px;height:44px;border-radius:12px;background:#DDF0F1;color:var(--num);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;flex:none}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{background:#fff;border-radius:14px;padding:12px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 1px 2px rgba(0,60,64,.08);width:100%;border:0;text-align:left;cursor:pointer}
+.row .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.row .mid b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mid small{font-size:13px;color:var(--muted)}
+.row .tags{display:flex;gap:6px;flex-wrap:wrap}
+.empty{text-align:center;color:var(--muted);padding:28px 12px;font-size:15px}
+.head{display:flex;gap:12px;align-items:center}
+.head .nm{flex:1;min-width:0}
+.head .nm h2{margin:0;font-size:20px;letter-spacing:0;color:var(--txt);display:block}
+.head .nm p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 14px;font-size:15px}
+dt{color:var(--muted)}
+dd{margin:0;font-weight:600;word-break:break-word;text-align:right}
+dd a{color:var(--dark);text-decoration:underline}
+.mini{border:0;background:#E3F1F2;color:var(--dark);font-weight:700;font-size:14px;border-radius:10px;min-height:36px;padding:0 12px;cursor:pointer;letter-spacing:0}
+.info{background:#E3F1F2;color:#0B4A4F;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45}
+.optlist{display:flex;flex-direction:column;gap:8px}
+.optc{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 14px;min-height:60px;cursor:pointer;text-align:left;width:100%}
+.optc.on{border-color:var(--dark);background:#E8F5F6}
+.optc .rd{width:22px;height:22px;border-radius:50%;border:2px solid #8FA7AA;flex:none;display:flex;align-items:center;justify-content:center}
+.optc.on .rd{border-color:var(--dark)}
+.optc.on .rd::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--dark)}
+.optc b{display:block;font-size:16px}
+.optc small{color:var(--muted);font-size:13px}
+.sw{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;cursor:pointer;text-align:left}
+.sw .tx{flex:1}
+.sw b{display:block;font-size:16px}
+.sw small{color:var(--muted);font-size:13px}
+.sw .tg{width:52px;height:32px;border-radius:999px;background:#C3CFD0;position:relative;flex:none;transition:background .15s}
+.sw .tg::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on .tg{background:var(--dark)}
+.sw.on .tg::after{left:24px}
+.two{display:flex;gap:10px}.two>*{flex:1}
+.counter{display:flex;align-items:center;justify-content:center;gap:22px;padding:8px 0}
+.counter b{font-size:64px;color:var(--num);min-width:96px;text-align:center}
+.round{width:64px;height:64px;border-radius:50%;border:2px solid var(--dark);background:#fff;color:var(--dark);font-size:32px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 92px);transform:translateX(-50%);background:#16282A;color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+/* ====== Configuração ====== */
+const PRECO_PLACA = 49.90; // preço praticado (planilha, aba Preço e margem)
+const STATUS = {
+  'Aguardando resultado': { curto: 'Aguardando', cls: 'p-ag', desc: 'Sem resposta ainda' },
+  'Agendado': { curto: 'Agendado', cls: 'p-agd', desc: 'Conversar em outra data' },
+  'Vendido': { curto: 'Vendido', cls: 'p-v', desc: 'Venda fechada' },
+  'Não apto': { curto: 'Não apto', cls: 'p-na', desc: 'Não compensa voltar' }
+};
+const ORDEM_STATUS = Object.keys(STATUS);
+
+/* ====== Ícones ====== */
+const I = {
+  back: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  eye: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  eraser: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 21h11"/><path d="M5.5 13.5l7-7a2 2 0 0 1 2.8 0l3 3a2 2 0 0 1 0 2.8L11 20H7.8a2 2 0 0 1-1.4-.6l-.9-.9a2 2 0 0 1 0-2.9z"/><path d="M8.5 10.5l5 5"/></svg>',
+  down: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A4B00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  up: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A4B00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+  plus: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  home: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>',
+  list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/></svg>',
+  nfc: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 8.5a5 5 0 0 1 0 7"/><path d="M9.5 6a9 9 0 0 1 0 12"/><path d="M13 3.5a13 13 0 0 1 0 17"/></svg>'
+};
+
+/* ====== Utilidades ====== */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const dayKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayKey = () => dayKey(new Date());
+const parseDay = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const DOW = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const shortDay = k => { if (!k) return ''; const d = parseDay(k); return DOW[d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
+const hhmm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+function relDay(iso) {
+  const d = new Date(iso), k = dayKey(d);
+  const ont = new Date(); ont.setDate(ont.getDate() - 1);
+  if (k === todayKey()) return 'Hoje';
+  if (k === dayKey(ont)) return 'Ontem';
+  return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + (d.getFullYear() !== new Date().getFullYear() ? '/' + d.getFullYear() : '');
+}
+const quando = iso => relDay(iso) + ' · ' + hhmm(new Date(iso));
+function nextSaturdays(n) {
+  const d = new Date(); d.setDate(d.getDate() + 1);
+  while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+  const out = [];
+  for (let i = 0; i < n; i++) { out.push(dayKey(d)); d.setDate(d.getDate() + 7); }
+  return out;
+}
+const minutosHorario = h => h === 'Manhã' ? 540 : h === 'Tarde' ? 840 : /^\d{2}:\d{2}$/.test(h || '') ? (+h.slice(0, 2)) * 60 + (+h.slice(3)) : 1440;
+const brl = v => (v === '' || v == null || isNaN(v)) ? '' : Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const num2 = v => (v === '' || v == null || isNaN(v)) ? '' : Number(v).toFixed(2).replace('.', ',');
+const parseNum = s => { s = String(s == null ? '' : s).trim().replace(/\s|R\$/g, ''); if (!s) return ''; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); const n = Number(s); return isNaN(n) ? '' : n; };
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+function toast(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2200); }
+
+/* ====== Banco local (IndexedDB) ====== */
+const db = {
+  _p: null,
+  open() {
+    if (!this._p) this._p = new Promise((res, rej) => {
+      const r = indexedDB.open('placas-nfc', 1);
+      r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('registros', { keyPath: 'id' }); d.createObjectStore('metas', { keyPath: 'dia' }); };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return this._p;
+  },
+  async tx(store, mode, fn) {
+    const d = await this.open();
+    return new Promise((res, rej) => {
+      const t = d.transaction(store, mode); const req = fn(t.objectStore(store));
+      t.oncomplete = () => res(req ? req.result : undefined);
+      t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  },
+  all(store) { return this.tx(store, 'readonly', s => s.getAll()); },
+  put(store, v) { return this.tx(store, 'readwrite', s => s.put(v)); }
+};
+let REGS = [];
+let METAS = {};
+async function salvar(r, manterHora) {
+  if (!manterHora) r.atualizadoEm = new Date().toISOString();
+  r.pendenteEnvio = true;
+  const i = REGS.findIndex(x => x.id === r.id);
+  if (i >= 0) REGS[i] = r; else REGS.push(r);
+  try { await db.put('registros', r); }
+  catch (e) { toast('Erro ao salvar no celular: ' + e.message); throw e; }
+}
+const getReg = id => REGS.find(x => x.id === id);
+
+/* ====== Localização ====== */
+let ultimaPos = null;
+function aquecerGPS() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(p => { ultimaPos = p; }, () => {}, { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
+}
+function aplicarPos(r, p) {
+  r.lat = +p.coords.latitude.toFixed(6); r.lng = +p.coords.longitude.toFixed(6); r.precisao = Math.round(p.coords.accuracy);
+}
+function capturarLocal(id, avisar) {
+  if (!navigator.geolocation) { if (avisar) toast('Este navegador não fornece localização'); return; }
+  navigator.geolocation.getCurrentPosition(async p => {
+    const r = getReg(id); if (!r) return;
+    aplicarPos(r, p); await salvar(r, true);
+    if (avisar) toast('Localização salva');
+    if (location.hash.includes(id)) rerender();
+  }, err => {
+    if (avisar) toast(err.code === 1 ? 'Localização bloqueada: permita nas configurações do site' : 'Não consegui a localização agora');
+  }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
+}
+
+/* ====== Navegação ====== */
+const app = document.getElementById('app');
+let D = {};             // rascunho do formulário da tela atual
+let ultimaRota = null;
+let oculto = true;      // olho: dados borrados no Início
+let pendAberto = false;
+const F = { status: 'Todos', opp: false, q: '' };
+const estado = () => history.state || { d: 0 };
+function go(h, replace) {
+  const d = estado().d;
+  if (replace) history.replaceState({ d }, '', h); else history.pushState({ d: d + 1 }, '', h);
+  route();
+}
+function voltar() { if (estado().d > 0) history.back(); else go('#/', true); }
+let querInicio = false;
+function inicio() {
+  const d = estado().d;
+  if (d > 0) { querInicio = true; history.go(-d); } else go('#/', true);
+}
+window.addEventListener('popstate', () => {
+  if (querInicio) { querInicio = false; if (location.hash && location.hash !== '#/') history.replaceState({ d: 0 }, '', '#/'); }
+  route();
+});
+function rerender() { const m = app.querySelector('main'); const y = m ? m.scrollTop : 0; route(true); const m2 = app.querySelector('main'); if (m2) m2.scrollTop = y; }
+
+function route(manter) {
+  const h = location.hash || '#/';
+  const [nome, id] = h.slice(2).split('/');
+  if (!(manter && h === ultimaRota)) { D = iniciarRascunho(nome, id); }
+  ultimaRota = h;
+  const r = id ? getReg(id) : null;
+  let html;
+  if (id && !r && ['registro', 'editar', 'resultado', 'agendar'].includes(nome)) html = vNaoEncontrado();
+  else switch (nome) {
+    case 'nova': html = vDados(null); break;
+    case 'editar': html = vDados(r); break;
+    case 'agendar': html = vAgendar(r); break;
+    case 'registro': html = vRegistro(r); break;
+    case 'resultado': html = vResultado(r); break;
+    case 'cadastro': html = vCadastro(); break;
+    case 'meta': html = vMeta(); break;
+    default: html = vInicio();
+  }
+  app.innerHTML = html;
+  if (nome === 'cadastro') desenharLista();
+  if (nome === 'nova' && !manter) aquecerGPS();
+}
+
+function iniciarRascunho(nome, id) {
+  const r = id ? getReg(id) : null;
+  if (nome === 'nova') return { estabelecimento: '', cidade: ls.get('ultimaCidade', 'Ponta Grossa'), atendeu: '', contato: '', telefone: '', email: '' };
+  if (nome === 'editar' && r) return { estabelecimento: r.estabelecimento, cidade: r.cidade || '', atendeu: r.atendeu || '', contato: r.contato || '', telefone: r.telefone || '', email: r.email || '' };
+  if ((nome === 'agendar' || nome === 'resultado') && r) {
+    const sats = nextSaturdays(3);
+    const h = r.horario || '';
+    const x = {
+      status: nome === 'agendar' ? 'Agendado' : r.status, oportunidade: !!r.oportunidade, comentario: r.comentario || '',
+      dataAgendada: r.dataAgendada || '', falarCom: r.falarCom || '',
+      horaTipo: (h === 'Manhã' || h === 'Tarde') ? h : (h ? 'Hora' : ''), hora: (h && h !== 'Manhã' && h !== 'Tarde') ? h : '',
+      placas: r.placas === '' || r.placas == null ? '' : String(r.placas), valor: r.valor === '' || r.valor == null ? '' : num2(r.valor), valorAuto: false
+    };
+    if (nome === 'agendar' && !x.dataAgendada) x.dataAgendada = sats[0];
+    x.outra = !!x.dataAgendada && !sats.includes(x.dataAgendada);
+    return x;
+  }
+  if (nome === 'meta') return { meta: METAS[todayKey()] || 5 };
+  return {};
+}
+
+/* ====== Peças de tela ====== */
+function topo(titulo, sub) {
+  return `<header class="top"><button class="ibtn" data-act="voltar" aria-label="Voltar">${I.back}</button><div class="grow"><h1>${esc(titulo)}</h1>${sub ? `<p>${esc(sub)}</p>` : ''}</div></header>`;
+}
+function abas(atual) {
+  return `<nav class="tabs" aria-label="Navegação">
+    <a href="#/" data-act="tabInicio" class="${atual === 'inicio' ? 'on' : ''}" ${atual === 'inicio' ? 'aria-current="page"' : ''}><span>${I.home}</span>Início</a>
+    <a href="#/cadastro" data-act="tabCadastro" class="${atual === 'cadastro' ? 'on' : ''}" ${atual === 'cadastro' ? 'aria-current="page"' : ''}><span>${I.list}</span>Cadastro</a>
+  </nav>`;
+}
+function campo(f, label, o) {
+  o = o || {};
+  return `<div class="field"><label for="f-${f}">${label}${o.opcional ? ' <span class="opt">(opcional)</span>' : ''}</label>
+    <input id="f-${f}" data-f="${f}" type="${o.type || 'text'}" ${o.im ? `inputmode="${o.im}"` : ''} ${o.ac ? `autocomplete="${o.ac}"` : 'autocomplete="off"'} ${o.live ? `data-live="${o.live}"` : ''} ${o.ph ? `placeholder="${esc(o.ph)}"` : ''} value="${esc(D[f])}"></div>`;
+}
+function chips(f, opcoes, alternar) {
+  return `<div class="seg">${opcoes.map(([v, t]) => `<button type="button" class="chip${D[f] === v ? ' on' : ''}" data-act="set" data-f="${f}" data-v="${esc(v)}"${alternar ? ' data-toggle="1"' : ''} aria-pressed="${D[f] === v}">${esc(t || v)}</button>`).join('')}</div>`;
+}
+function pill(status) { const s = STATUS[status] || STATUS['Aguardando resultado']; return `<span class="pill ${s.cls}">${esc(s.curto)}</span>`; }
+function quem(r) {
+  if (r.contato && r.atendeu) return r.contato + ' (' + r.atendeu.toLowerCase() + ')';
+  return r.contato || r.atendeu || '';
+}
+function blocoAgenda() {
+  const sats = nextSaturdays(3);
+  const dias = sats.map(k => `<button type="button" class="chip${!D.outra && D.dataAgendada === k ? ' on' : ''}" data-act="dia" data-v="${k}">${shortDay(k)}</button>`).join('')
+    + `<button type="button" class="chip${D.outra ? ' on' : ''}" data-act="outra">Outra data</button>`;
+  return `<div class="field"><span class="lab">Dia</span><div class="seg">${dias}</div>
+      ${D.outra ? `<input type="date" data-f="dataAgendada" aria-label="Outra data" min="${todayKey()}" value="${esc(D.dataAgendada)}">` : ''}</div>
+    <div class="field"><span class="lab">Horário <span class="opt">(opcional)</span></span>
+      ${chips('horaTipo', [['Manhã'], ['Tarde'], ['Hora', 'Hora específica']], true)}
+      ${D.horaTipo === 'Hora' ? `<input type="time" data-f="hora" aria-label="Hora" value="${esc(D.hora)}">` : ''}</div>`;
+}
+const horarioDoRascunho = () => D.horaTipo === 'Hora' ? (D.hora || '') : (D.horaTipo || '');
+
+/* ====== Telas ====== */
+function vInicio() {
+  const tk = todayKey();
+  const visitas = REGS.filter(r => dayKey(new Date(r.criadoEm)) === tk).length;
+  const vendas = REGS.filter(r => r.status === 'Vendido' && r.vendidoEm && dayKey(new Date(r.vendidoEm)) === tk).length;
+  const meta = METAS[tk];
+  const pend = REGS.filter(r => r.status === 'Aguardando resultado').sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+  const bl = oculto ? 'blur' : '';
+  let data = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  data = data.charAt(0).toUpperCase() + data.slice(1);
+  const pct = meta ? Math.min(100, Math.round(vendas / meta * 100)) : 0;
+  return `<header class="top home"><div class="grow"><h1>Visitas de hoje</h1><p>${esc(data)}</p></div>
+      <a class="ibtn" href="teste-nfc.html#limpar" aria-label="Limpar chip">${I.eraser}</a>
+      <button class="ibtn" data-act="olho" aria-label="${oculto ? 'Mostrar dados' : 'Ocultar dados'}">${oculto ? I.eye : I.eyeOff}</button></header>
+    <main>
+      <div class="stats">
+        <div class="stat"><b class="${bl}">${visitas}</b><span>Visitas</span></div>
+        <div class="stat"><b class="${bl}">${vendas}</b><span>Vendas</span></div>
+        <a class="stat meta" href="#/meta" data-act="go" aria-label="Mudar a meta de hoje"><b class="${bl}">${meta ? vendas + '/' + meta : '–'}</b><span>${meta ? 'Meta' : 'Definir meta'}</span><span class="bar ${bl}"><i style="width:${pct}%"></i></span></a>
+      </div>
+      <p class="hint">${oculto ? 'Dados ocultos. Toque no olho para mostrar.' : 'Toque na meta para mudar o valor de hoje.'}</p>
+      <div class="pend">
+        <button data-act="pend" aria-expanded="${pendAberto}"><span class="lbl">AGUARDANDO RESULTADO</span><span class="cnt ${bl}">${pend.length}</span>${pendAberto ? I.up : I.down}</button>
+        ${pendAberto ? (pend.length ? `<ul>${pend.map(r => `<li><div class="nm ${bl}"><b>${esc(r.estabelecimento)}</b><small>${esc(quando(r.criadoEm))}</small></div><a href="#/registro/${r.id}" data-act="go">Abrir</a></li>`).join('')}</ul>` : '<ul><li><div class="nm"><small>Nenhuma visita esperando resultado.</small></div></li></ul>') : ''}
+      </div>
+    </main>
+    <div class="foot"><a class="btn primary big" href="#/nova" data-act="go">${I.plus} Nova visita</a></div>
+    ${abas('inicio')}`;
+}
+
+function vDados(r) {
+  const nova = !r;
+  return `${topo(nova ? 'Nova visita' : 'Editar dados', nova ? 'Só o nome é obrigatório' : r.estabelecimento)}
+    <main>
+      <div class="field"><label for="f-estabelecimento">Nome do estabelecimento</label>
+        <input id="f-estabelecimento" data-f="estabelecimento" data-live="dup" type="text" autocomplete="off" autocapitalize="words" value="${esc(D.estabelecimento)}"></div>
+      <div id="dup"></div>
+      <p class="err" id="errNome" hidden>Digite o nome do estabelecimento.</p>
+      ${campo('cidade', 'Cidade')}
+      <div class="field"><span class="lab">Quem atendeu <span class="opt">(opcional)</span></span>${chips('atendeu', [['Dono'], ['Funcionário'], ['Gerente']], true)}</div>
+      ${campo('contato', 'Nome do contato', { opcional: true })}
+      ${campo('telefone', 'Telefone', { opcional: true, type: 'tel', im: 'tel', ph: '(42) 9____-____' })}
+      ${campo('email', 'E-mail', { opcional: true, type: 'email', im: 'email' })}
+      ${nova ? '<p class="note">Data, hora e local são salvos sozinhos.</p>' : ''}
+      <div class="btns">
+        ${nova ? `<button class="btn primary" data-act="salvarNova">Salvar</button><button class="btn sec" data-act="salvarNovaAgendar">Salvar e agendar</button>`
+               : `<button class="btn primary" data-act="salvarEdicao">Salvar alterações</button><button class="btn ghost" data-act="voltar">Cancelar</button>`}
+      </div>
+    </main>`;
+}
+
+function vAgendar(r) {
+  return `${topo('Agendar conversa', r.estabelecimento)}
+    <main>
+      ${campo('falarCom', 'Falar com', { opcional: true, ph: 'Ex.: Marcos, o dono' })}
+      ${blocoAgenda()}
+      <p class="err" id="errAg" hidden></p>
+      <p class="note">O status vira Agendado sozinho. O horário aparece como etiqueta no Cadastro.</p>
+      <div class="btns"><button class="btn primary" data-act="salvarAgenda">Salvar e agendar</button><button class="btn ghost" data-act="voltar">Cancelar</button></div>
+    </main>`;
+}
+
+function vRegistro(r) {
+  const tel = r.telefone ? `<a href="tel:${esc(r.telefone.replace(/[^\d+]/g, ''))}">${esc(r.telefone)}</a>` : 'Não informado';
+  const mail = r.email ? `<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : 'Não informado';
+  const local = r.lat != null ? `<a href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">Ver no mapa</a>` : `<button class="mini" data-act="localAgora" data-id="${r.id}">Pegar agora</button>`;
+  const vis = relDay(r.criadoEm) === 'Hoje' ? 'Visita de hoje · ' + hhmm(new Date(r.criadoEm)) : 'Visita de ' + quando(r.criadoEm).replace(' · ', ' às ');
+  return `${topo('Registro', vis)}
+    <main>
+      <div class="card">
+        <div class="head"><div class="av">${esc((r.estabelecimento || '?').trim().charAt(0).toUpperCase())}</div>
+          <div class="nm"><h2>${esc(r.estabelecimento)}</h2><p>${esc(r.cidade || '')}</p></div>${pill(r.status)}</div>
+        ${r.oportunidade ? '<div class="badges"><span class="tag opp">Oportunidade de serviço</span></div>' : ''}
+      </div>
+      ${r.status === 'Agendado' ? `<div class="card"><h2>CONVERSA AGENDADA</h2><dl>
+        <dt>Dia</dt><dd>${esc(shortDay(r.dataAgendada) || 'Sem data')}</dd>
+        <dt>Horário</dt><dd>${esc(r.horario || 'Qualquer horário')}</dd>
+        ${r.falarCom ? `<dt>Falar com</dt><dd>${esc(r.falarCom)}</dd>` : ''}</dl></div>` : ''}
+      ${r.status === 'Vendido' ? `<div class="card"><h2>VENDA</h2><dl>
+        <dt>Placas</dt><dd>${esc(r.placas || '—')}</dd><dt>Valor</dt><dd>${esc(brl(r.valor) || '—')}</dd>
+        ${r.vendidoEm ? `<dt>Fechada</dt><dd>${esc(quando(r.vendidoEm))}</dd>` : ''}</dl></div>` : ''}
+      <div class="card"><h2>DADOS <button class="mini" data-act="go" data-h="#/editar/${r.id}">Editar</button></h2>
+        <dl><dt>Atendeu</dt><dd>${esc(quem(r) || 'Não informado')}</dd>
+        <dt>Telefone</dt><dd>${tel}</dd><dt>E-mail</dt><dd>${mail}</dd><dt>Local</dt><dd>${local}</dd>
+        ${r.comentario ? `<dt>Comentário</dt><dd style="text-align:left;grid-column:1/-1;font-weight:500">${esc(r.comentario)}</dd>` : ''}</dl></div>
+      <div class="info">A placa é gravada a partir deste registro, e o resultado continua como está. Você define o resultado e edita qualquer dado quando quiser.</div>
+      <div class="btns">
+        <a class="btn primary" href="teste-nfc.html">${I.nfc} Gravar placa</a>
+        <button class="btn sec" data-act="go" data-h="#/resultado/${r.id}">Alterar resultado</button>
+        <button class="btn ghost" data-act="inicio">Voltar ao início</button>
+      </div>
+    </main>`;
+}
+
+function vResultado(r) {
+  const opcoes = ORDEM_STATUS.map(s => `<button type="button" class="optc${D.status === s ? ' on' : ''}" data-act="set" data-f="status" data-v="${esc(s)}" aria-pressed="${D.status === s}"><span class="rd"></span><span><b>${esc(STATUS[s].curto)}</b><small>${esc(STATUS[s].desc)}</small></span></button>`).join('');
+  return `${topo('Resultado', r.estabelecimento + ' · pode mudar a qualquer momento')}
+    <main>
+      <div class="optlist">${opcoes}</div>
+      <button type="button" class="sw${D.oportunidade ? ' on' : ''}" data-act="opp" role="switch" aria-checked="${!!D.oportunidade}"><span class="tx"><b>Oportunidade de serviço</b><small>Site, cardápio, planilha. Vale para qualquer status.</small></span><span class="tg"></span></button>
+      ${D.status === 'Agendado' ? blocoAgenda() + campo('falarCom', 'Falar com', { opcional: true }) : ''}
+      ${D.status === 'Vendido' ? `<div class="two">${campo('placas', 'Placas', { im: 'numeric', live: 'placas' })}${campo('valor', 'Valor (R$)', { im: 'decimal', live: 'valor' })}</div>` : ''}
+      <div class="field"><label for="f-comentario">Comentário <span class="opt">(opcional)</span></label><textarea id="f-comentario" data-f="comentario">${esc(D.comentario)}</textarea></div>
+      <p class="err" id="errRes" hidden></p>
+      <div class="btns"><button class="btn primary" data-act="salvarResultado">Salvar resultado</button><button class="btn ghost" data-act="voltar">Cancelar</button></div>
+    </main>`;
+}
+
+function vCadastro() {
+  const nomes = ['Todos', ...ORDEM_STATUS];
+  const ch = nomes.map(s => {
+    const n = REGS.filter(r => s === 'Todos' || r.status === s).length;
+    const lab = s === 'Todos' ? 'Todos' : STATUS[s].curto;
+    return `<button class="chip${F.status === s ? ' on' : ''}" data-act="filtro" data-v="${esc(s)}" aria-pressed="${F.status === s}">${esc(lab)} <small>${n}</small></button>`;
+  }).join('');
+  const nOpp = REGS.filter(r => r.oportunidade).length;
+  return `<header class="top"><div class="grow"><h1>Cadastro</h1><p>Todos os comércios visitados</p></div></header>
+    <main>
+      <input type="search" id="busca" placeholder="Buscar nome, contato, telefone…" aria-label="Buscar" value="${esc(F.q)}">
+      <div class="scroll">${ch}</div>
+      <div class="seg"><button class="chip${F.opp ? ' on' : ''}" data-act="filtroOpp" aria-pressed="${F.opp}">Oportunidade de serviço <small>${nOpp}</small></button></div>
+      ${F.status === 'Agendado' ? '<p class="note">Ordenado por data: da mais próxima para a mais distante.</p>' : ''}
+      <div class="rows" id="lista"></div>
+      <div class="card"><h2>CÓPIA DE SEGURANÇA</h2>
+        <p class="note" style="margin-bottom:10px">${REGS.length} ${REGS.length === 1 ? 'registro salvo' : 'registros salvos'} só neste celular. Até a etapa 4 (planilha Google), exporte de vez em quando.</p>
+        <button class="btn sec" data-act="exportar">Exportar planilha (CSV)</button></div>
+    </main>
+    ${abas('cadastro')}`;
+}
+function desenharLista() {
+  const el = document.getElementById('lista'); if (!el) return;
+  const q = norm(F.q);
+  let list = REGS.filter(r => (F.status === 'Todos' || r.status === F.status) && (!F.opp || r.oportunidade));
+  if (q) list = list.filter(r => norm([r.estabelecimento, r.contato, r.telefone, r.cidade, r.email, r.comentario, r.falarCom].join(' ')).includes(q) || (r.telefone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§'));
+  if (F.status === 'Agendado') list.sort((a, b) => (a.dataAgendada || '9999').localeCompare(b.dataAgendada || '9999') || minutosHorario(a.horario) - minutosHorario(b.horario));
+  else list.sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+  if (!list.length) { el.innerHTML = `<div class="empty">${REGS.length ? 'Nenhum registro com esses filtros.' : 'Nenhuma visita ainda. Toque em Início → Nova visita.'}</div>`; return; }
+  el.innerHTML = list.map(r => {
+    const tags = [];
+    if (r.status === 'Agendado' && r.horario) tags.push(`<span class="tag">${esc(r.horario)}</span>`);
+    if (r.oportunidade) tags.push('<span class="tag opp">Oportunidade</span>');
+    const w = quem(r);
+    const sub = (r.status === 'Agendado' ? (shortDay(r.dataAgendada) || 'Sem data') : relDay(r.criadoEm)) + (w ? ' · ' + w : r.cidade ? ' · ' + r.cidade : '');
+    return `<button class="row" data-act="go" data-h="#/registro/${r.id}"><span class="av">${esc((r.estabelecimento || '?').trim().charAt(0).toUpperCase())}</span>
+      <span class="mid"><b>${esc(r.estabelecimento)}</b><small>${esc(sub)}</small>${tags.length ? `<span class="tags">${tags.join('')}</span>` : ''}</span>${pill(r.status)}</button>`;
+  }).join('');
+}
+
+function vMeta() {
+  const tk = todayKey();
+  const vendas = REGS.filter(r => r.status === 'Vendido' && r.vendidoEm && dayKey(new Date(r.vendidoEm)) === tk).length;
+  return `${topo('Meta de hoje', 'Vendas que você quer fechar hoje')}
+    <main>
+      <div class="card"><div class="counter"><button class="round" data-act="metaMais" data-v="-1" aria-label="Diminuir">−</button><b>${D.meta}</b><button class="round" data-act="metaMais" data-v="1" aria-label="Aumentar">+</button></div></div>
+      <div class="field"><span class="lab">Atalhos</span><div class="seg">${[3, 5, 8, 10].map(n => `<button class="chip${D.meta === n ? ' on' : ''}" data-act="metaSet" data-v="${n}">${n}</button>`).join('')}</div></div>
+      <p class="note">Hoje você já fez ${vendas} ${vendas === 1 ? 'venda' : 'vendas'}. A meta vale só para hoje e você define de novo no próximo dia.</p>
+      <div class="btns"><button class="btn primary" data-act="salvarMeta">Salvar meta</button></div>
+    </main>`;
+}
+
+function vNaoEncontrado() {
+  return `${topo('Registro', '')}<main><div class="empty">Registro não encontrado.</div><button class="btn sec" data-act="inicio">Voltar ao início</button></main>`;
+}
+
+/* ====== Ações ====== */
+function mostrarErro(id, t) { const el = document.getElementById(id); if (el) { el.textContent = t || el.textContent; el.hidden = false; el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }
+function lerDados() {
+  return {
+    estabelecimento: D.estabelecimento.trim().replace(/\s+/g, ' '), cidade: (D.cidade || '').trim(), atendeu: D.atendeu || '',
+    contato: (D.contato || '').trim(), telefone: (D.telefone || '').trim(), email: (D.email || '').trim()
+  };
+}
+async function criarVisita() {
+  const x = lerDados();
+  if (!x.estabelecimento) { mostrarErro('errNome'); document.getElementById('f-estabelecimento').focus(); return null; }
+  const r = Object.assign({
+    id: uid(), criadoEm: new Date().toISOString(), status: 'Aguardando resultado', oportunidade: false,
+    dataAgendada: '', horario: '', falarCom: '', comentario: '', lat: null, lng: null, precisao: null, placas: '', valor: '', vendidoEm: ''
+  }, x);
+  const fresca = ultimaPos && (Date.now() - ultimaPos.timestamp) < 120000;
+  if (fresca) aplicarPos(r, ultimaPos);
+  await salvar(r);
+  if (x.cidade) ls.set('ultimaCidade', x.cidade);
+  if (!fresca) capturarLocal(r.id, false);
+  return r;
+}
+function validarAgenda(errId) {
+  if (!D.dataAgendada) { mostrarErro(errId, 'Escolha o dia da conversa.'); return false; }
+  if (D.horaTipo === 'Hora' && !D.hora) { mostrarErro(errId, 'Escolha a hora ou marque Manhã/Tarde.'); return false; }
+  return true;
+}
+
+const ACT = {
+  go: el => go(el.dataset.h || el.getAttribute('href')),
+  voltar: () => voltar(),
+  inicio: () => inicio(),
+  tabInicio: () => { if (ultimaRota !== '#/' && location.hash !== '') inicio(); },
+  tabCadastro: () => { if (!(location.hash || '').startsWith('#/cadastro')) go('#/cadastro'); },
+  olho: () => { oculto = !oculto; rerender(); },
+  pend: () => { pendAberto = !pendAberto; rerender(); },
+  set: el => { const f = el.dataset.f, v = el.dataset.v; D[f] = (el.dataset.toggle && D[f] === v) ? '' : v;
+    if (f === 'status' && v === 'Agendado' && !D.dataAgendada) { D.dataAgendada = nextSaturdays(1)[0]; D.outra = false; }
+    if (f === 'status' && v === 'Vendido') { if (!D.placas) D.placas = '1'; if (!D.valor) { D.valor = num2(PRECO_PLACA * (+D.placas || 1)); D.valorAuto = true; } }
+    rerender(); },
+  dia: el => { D.dataAgendada = el.dataset.v; D.outra = false; rerender(); },
+  outra: () => { if (!D.outra && nextSaturdays(3).includes(D.dataAgendada)) D.dataAgendada = ''; D.outra = true; rerender(); const i = app.querySelector('input[type=date]'); if (i) { try { i.showPicker(); } catch (e) { i.focus(); } } },
+  opp: () => { D.oportunidade = !D.oportunidade; rerender(); },
+  filtro: el => { F.status = el.dataset.v; rerender(); },
+  filtroOpp: () => { F.opp = !F.opp; rerender(); },
+  metaMais: el => { D.meta = Math.max(1, Math.min(99, D.meta + (+el.dataset.v))); rerender(); },
+  metaSet: el => { D.meta = +el.dataset.v; rerender(); },
+  localAgora: el => { toast('Buscando localização…'); capturarLocal(el.dataset.id, true); },
+  async salvarNova() { const r = await criarVisita(); if (r) { toast('Visita salva'); go('#/registro/' + r.id, true); } },
+  async salvarNovaAgendar() { const r = await criarVisita(); if (r) go('#/agendar/' + r.id, true); },
+  async salvarEdicao() {
+    const x = lerDados(); if (!x.estabelecimento) { mostrarErro('errNome'); return; }
+    const r = getReg(location.hash.split('/')[2]); Object.assign(r, x); await salvar(r);
+    if (x.cidade) ls.set('ultimaCidade', x.cidade); toast('Dados salvos'); voltar();
+  },
+  async salvarAgenda() {
+    if (!validarAgenda('errAg')) return;
+    const r = getReg(location.hash.split('/')[2]);
+    Object.assign(r, { status: 'Agendado', dataAgendada: D.dataAgendada, horario: horarioDoRascunho(), falarCom: (D.falarCom || '').trim() });
+    if (r.vendidoEm) { r.vendidoEm = ''; r.placas = ''; r.valor = ''; }
+    await salvar(r); toast('Agendado para ' + shortDay(r.dataAgendada)); voltar();
+  },
+  async salvarResultado() {
+    const r = getReg(location.hash.split('/')[2]);
+    if (D.status === 'Agendado' && !validarAgenda('errRes')) return;
+    if (D.status === 'Vendido' && D.valor && parseNum(D.valor) === '') { mostrarErro('errRes', 'Valor inválido. Use, por exemplo, 49,90.'); return; }
+    const antes = r.status;
+    r.status = D.status; r.oportunidade = !!D.oportunidade; r.comentario = (D.comentario || '').trim();
+    if (D.status === 'Agendado') { r.dataAgendada = D.dataAgendada; r.horario = horarioDoRascunho(); r.falarCom = (D.falarCom || '').trim(); }
+    if (D.status === 'Vendido') { r.placas = parseNum(D.placas); r.valor = parseNum(D.valor); if (antes !== 'Vendido' || !r.vendidoEm) r.vendidoEm = new Date().toISOString(); }
+    else { r.placas = ''; r.valor = ''; r.vendidoEm = ''; }
+    await salvar(r); toast('Resultado salvo'); voltar();
+  },
+  async salvarMeta() {
+    const m = { dia: todayKey(), meta: D.meta }; METAS[m.dia] = m.meta;
+    try { await db.put('metas', m); } catch (e) { toast('Erro ao salvar a meta'); return; }
+    toast('Meta de hoje: ' + m.meta); voltar();
+  },
+  exportar: () => exportarCSV()
+};
+const LIVE = {
+  dup: el => {
+    const box = document.getElementById('dup'); if (!box) return;
+    const q = norm(el.value); const atual = location.hash.split('/')[2];
+    const err = document.getElementById('errNome'); if (err && q) err.hidden = true;
+    if (q.length < 3) { box.innerHTML = ''; return; }
+    const m = REGS.filter(r => r.id !== atual && (norm(r.estabelecimento) === q || (q.length >= 4 && norm(r.estabelecimento).includes(q)))).slice(0, 3);
+    box.innerHTML = m.length ? `<div class="dup">Já visitado: ${m.map(r => `<a href="#/registro/${r.id}" data-act="go">${esc(r.estabelecimento)}</a> (${esc(STATUS[r.status].curto)}, ${esc(relDay(r.criadoEm))})`).join(' · ')}</div>` : '';
+  },
+  placas: () => { if (D.valorAuto) { D.valor = num2(PRECO_PLACA * (+D.placas || 0)); const v = document.getElementById('f-valor'); if (v) v.value = D.valor; } },
+  valor: () => { D.valorAuto = false; }
+};
+app.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  e.preventDefault(); const fn = ACT[el.dataset.act]; if (fn) fn(el);
+});
+app.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'busca') { F.q = el.value; desenharLista(); return; }
+  if (el.dataset.f) { D[el.dataset.f] = el.value; if (el.dataset.live && LIVE[el.dataset.live]) LIVE[el.dataset.live](el); }
+});
+
+/* ====== Exportar CSV (mesma ordem da aba Cadastro) ====== */
+function exportarCSV() {
+  if (!REGS.length) { toast('Nada para exportar ainda'); return; }
+  const cab = ['Data e hora', 'Estabelecimento', 'Quem atendeu', 'Contato', 'Telefone', 'E-mail', 'Status', 'Categoria', 'Data agendada', 'Horário', 'Comentário', 'Latitude', 'Longitude', 'Link do mapa', 'Placas vendidas', 'Valor (R$)', 'Cidade', 'Falar com'];
+  const dt = iso => { const d = new Date(iso); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + hhmm(d); };
+  const dd = k => k ? k.split('-').reverse().join('/') : '';
+  const cel = v => { v = String(v == null ? '' : v); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const linhas = REGS.slice().sort((a, b) => a.criadoEm.localeCompare(b.criadoEm)).map(r => [
+    dt(r.criadoEm), r.estabelecimento, r.atendeu, r.contato, r.telefone, r.email, r.status, r.oportunidade ? 'Oportunidade de serviço' : '',
+    dd(r.dataAgendada), r.horario, r.comentario, r.lat ?? '', r.lng ?? '', r.lat != null ? `https://www.google.com/maps?q=${r.lat},${r.lng}` : '',
+    r.placas, num2(r.valor), r.cidade, r.falarCom
+  ].map(cel).join(';'));
+  const csv = '﻿' + [cab.join(';'), ...linhas].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'cadastro-visitas-' + todayKey() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('Planilha exportada');
+}
+
+/* ====== Início do app ====== */
+(async function () {
+  try {
+    REGS = await db.all('registros');
+    (await db.all('metas')).forEach(m => { METAS[m.dia] = m.meta; });
+  } catch (e) {
+    app.innerHTML = '<main><div class="empty">Não consegui abrir o banco de dados do celular. Saia do modo anônimo e tente de novo.</div></main>';
+    return;
+  }
+  if (!history.state) history.replaceState({ d: 0 }, '', location.hash || '#/');
+  route();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+    let tinha = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) toast('App atualizado. Feche e abra de novo.'); tinha = true; });
+  }
+})();
+</script>
+</body>
+</html>
